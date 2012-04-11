@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}登录{% endblock %}
+
+{% block body %}
+{% load url from future %}
+
+<form method="post" action="{% url 'django.contrib.auth.views.login' %}">
+	{% csrf_token %}
+	{{ form.as_p }}
+	<p><input type="submit" value="登录" /></p>
+	<input type="hidden" name="next" value="{{ next }}" />
+</form>
+{% endblock %} 

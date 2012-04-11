@@ -1,0 +1,9 @@
+{% load url from future %}
+{% block body %}
+	<div>
+		<a href="{% url 'django.contrib.auth.views.logout' %}">退出</a>
+	</div>
+	
+	{% block mainContent %}
+	{% endblock %}
+{% endblock %}
