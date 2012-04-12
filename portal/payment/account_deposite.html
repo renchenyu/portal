@@ -1,0 +1,29 @@
+{% extends 'login_required.html' %}
+
+{% block title %}{{ user.get_full_name }}{% endblock %}
+
+{% block mainContent %}
+{% load url from future %}
+<table>
+	<tr>
+		<td>工号</td>
+		<td>{{ other.id }}</td>
+	</tr>
+	<tr>
+		<td>姓名</td>
+		<td>{{ other.get_full_name }}</td>
+	</tr>
+	<tr>
+		<td>账户余额</td>
+		<td>{{ other.account.balance }}</td>
+	</tr>
+</table>
+
+<form method="POST" action="{% url 'payment.views.account_deposite' user_id=other.id %}">
+	{% csrf_token %}
+	{{ form.as_p }}
+	<p><input type="submit" value="充值" /></p>
+</form>
+
+<a href="{% url 'payment.views.account_list' %}">返回</a>
+{% endblock %}

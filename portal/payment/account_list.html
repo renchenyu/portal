@@ -1,0 +1,26 @@
+{% extends 'login_required.html' %}
+
+{% block title %}账户列表{% endblock %}
+
+{% block mainContent %}
+{% load url from future %}
+<table width="100%">
+	<tr>
+		<td>工号</td>
+		<td>姓名</td>
+		<td>账户余额</td>
+		<td>操作</td>
+	</tr>
+	{% for user in users %}
+	<tr>
+		<td>{{ user.id }}</td>
+		<td>{{ user.get_full_name }}</td>
+		<td>{{ user.account.balance }}</td>
+		<td><a href="{% url 'payment.views.account_deposite' user_id=user.id %}">充值</a></td>
+	</tr>
+	{% endfor %}
+</table>
+
+<a href="{% url 'accounts.views.profile' %}">返回</a>
+
+{% endblock %}

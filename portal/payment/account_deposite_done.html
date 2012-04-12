@@ -1,0 +1,11 @@
+{% extends 'login_required.html' %}
+
+{% block title %}充值完成{% endblock %}
+
+{% block mainContent %}
+{% load url from future %}
+<h1>充值完成！</h1>
+
+<a href="{% url 'payment.views.account_list' %}">返回</a>
+{% endblock %}
+

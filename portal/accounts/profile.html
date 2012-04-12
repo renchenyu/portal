@@ -3,6 +3,7 @@
 {% block title %}个人资料{% endblock %}
 
 {% block mainContent %}
+{% load url from future %}
 <table>
 	<tr>
 		<td>工号</td>
@@ -12,7 +13,16 @@
 		<td>姓名</td>
 		<td>{{ user.get_full_name }}</td>
 	</tr>
+	<tr>
+		<td>账户余额</td>
+		<td>{{ user.account.balance }} <a href="{% url 'payment.views.logs' %}">查看记录</a></td>
+	</tr>
 </table>
-{% load url from future %}
+
 <a href="{% url 'django.contrib.auth.views.password_change' %}">修改密码</a>
+
+{% if perms.payment.deposite_account %}
+<a href="{% url 'payment.views.account_list' %}">充值</a>
+{% endif %}
+
 {% endblock %}

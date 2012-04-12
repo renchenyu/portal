@@ -1,0 +1,31 @@
+{% extends 'login_required.html' %}
+
+{% block title %}充值/消费记录{% endblock %}
+
+{% block mainContent %}
+
+{% if payment_logs %}
+<table width="100%">
+	<thead>
+		<td>时间</td>
+		<td>充值/支出</td>
+		<td>详细</td>
+		<td>操作人</td>
+	</thead>
+{% for log in payment_logs %}
+	<tr>
+		<td>{{ log.datetime }}</td>
+		<td>{{ log.income }}</td>
+		<td>{{ log.detail }}</td>
+		<td>{{ log.operator.get_full_name }}</td>
+	</tr>
+{% endfor %}
+</table>
+{% else %}
+<h1>没有任何充值/消费记录！</h1>
+{% endif %}
+
+{% load url from future %}
+<a href="{% url 'accounts.views.profile' %}">返回</a>
+
+{% endblock %}
