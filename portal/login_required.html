@@ -1,9 +1,18 @@
+{% extends 'base.html' %}
+
 {% load url from future %}
 {% block body %}
-	<div>
+	<div class="titlebar">
+		{% if perms.payment.deposite_account %}
+		<a href="{% url 'payment.views.account_list' %}">充值</a>
+		{% endif %}
+		<a href="{% url 'meal.views.menu' %}">我要订餐!</a>
+		<a href="{% url 'accounts.views.profile' %}">个人资料({{ user.get_full_name|default:"姓名" }})</a>
 		<a href="{% url 'django.contrib.auth.views.logout' %}">退出</a>
 	</div>
 	
+	<div class="mainContentWrapper">
 	{% block mainContent %}
 	{% endblock %}
+	</div>
 {% endblock %}

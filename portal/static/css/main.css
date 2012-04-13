@@ -1,0 +1,117 @@
+body {
+	font-family: "Hiragino Sans GB", "WenQuanYi Micro Hei" , Verdana, Arial;
+	margin: 0;
+	padding: 0;
+	color: #595959;
+	background-color: white;
+	background-image: url(../img/homebg.gif);
+}
+
+form p {
+	padding: 0;
+	margin: 2px 0 10px 0;
+}
+
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+ul.errorlist {
+	color: red
+}
+
+li {
+	margin: 0;
+}
+
+.wrapper {
+	width: 300px;
+	margin: 10px auto;
+}
+
+#id_login_form label {
+	display: block;
+	float: left;
+	width: 100px;
+	height: 20px;
+	padding-top: 10px;
+}
+
+#id_login_form input[type="text"], 
+#id_login_form input[type="password"] {
+	width: 180px;
+	height: 30px;
+	font-family: "Hiragino Sans GB", "WenQuanYi Micro Hei" , "微软雅黑";
+	font-size: 14px;
+}
+
+#id_login_form input[type="submit"], .form_button {
+	background-attachment: scroll;
+	background-image: url(../img/Regbutton.png);
+	background-repeat: no-repeat;
+	background-position: center 5px;
+	height: 59px;
+	width: 154px;
+	font-family: "Hiragino Sans GB", "WenQuanYi Micro Hei" , "微软雅黑";
+	font-weight: bold;
+	font-size: 17px;
+	color: #5D5D5D;
+	border: 0px none white;
+	background-color: transparent;
+}
+
+div.titlebar {
+	padding: 10px;
+	text-align: right;
+	border-bottom: 1px dashed #5D5D5D;
+}
+
+div.mainContentWrapper {
+	width: 800px;
+	margin: 5px auto;
+}
+
+label.menu_label {
+	display: block;
+	float: left;
+	width: 80px;
+}
+
+table {
+	width: 100%;
+	border-top: 1px solid #33b5e5;
+	border-right: 1px solid #33b5e5;
+	margin: 1em auto;
+	border-collapse: collapse;
+	background-color: white;
+}
+
+thead {
+	display: table-header-group;
+	vertical-align: middle;
+	border-color: inherit;
+}
+
+thead th {
+	background: #F4F9FE;
+	text-align: center;
+}
+
+th {
+	border-bottom: 1px solid #33b5e5;
+	border-left: 1px solid #33b5e5;
+	padding: .3em 1em;
+}
+
+td {
+	border-bottom: 1px solid #33b5e5;
+	border-left: 1px solid #33b5e5;
+	padding: .3em 1em;
+	text-align: center;
+}
+
+tr.odd {
+	background-color: #F7FBFF
+}

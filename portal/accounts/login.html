@@ -5,10 +5,15 @@
 {% block body %}
 {% load url from future %}
 
-<form method="post" action="{% url 'django.contrib.auth.views.login' %}">
-	{% csrf_token %}
-	{{ form.as_p }}
-	<p><input type="submit" value="登录" /></p>
-	<input type="hidden" name="next" value="{{ next }}" />
-</form>
+<div class="wrapper">
+
+	<form method="post" action="{% url 'django.contrib.auth.views.login' %}" id="id_login_form">
+		{% csrf_token %}
+		{{ form.as_p }}
+		<p style="text-align: center; margin-top: 15px"><input type="submit" value="登录" /></p>
+		<input type="hidden" name="next" value="{{ next }}" />
+	</form>
+
+</div>
+
 {% endblock %} 

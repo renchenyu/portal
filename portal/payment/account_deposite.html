@@ -19,10 +19,10 @@
 	</tr>
 </table>
 
-<form method="POST" action="{% url 'payment.views.account_deposite' user_id=other.id %}">
+<form method="POST" action="{% url 'payment.views.account_deposite' user_id=other.id %}" id="id_login_form">
 	{% csrf_token %}
 	{{ form.as_p }}
-	<p><input type="submit" value="充值" /></p>
+	<p><input type="submit" value="充值" class="form_button" /></p>
 </form>
 
 <a href="{% url 'payment.views.account_list' %}">返回</a>

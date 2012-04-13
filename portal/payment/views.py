@@ -13,13 +13,15 @@ from payment.forms import AccountDepositeForm
 def logs(request, template_name):
     user = request.user
     payment_logs = user.account.log_set.order_by('-datetime')
-    return render_to_response(template_name, {'payment_logs': payment_logs})
+    return render_to_response(template_name, {'payment_logs': payment_logs}, 
+        context_instance=RequestContext(request))
 
 @login_required
 @permission_required('payment.deposite_account', raise_exception=True)
 def account_list(request):
     users = User.objects.select_related('account').all()
-    return render_to_response('payment/account_list.html', {'users': users})
+    return render_to_response('payment/account_list.html', {'users': users},
+        context_instance=RequestContext(request))
 
 @login_required
 @permission_required('payment.deposite_account', raise_exception=True)
@@ -44,4 +46,4 @@ def account_deposite(request, user_id):
 @login_required
 @permission_required('payment.deposite_account', raise_exception=True)
 def account_deposite_done(request):
-    return render_to_response('payment/account_deposite_done.html')
+    return render_to_response('payment/account_deposite_done.html', {}, context_instance=RequestContext(request))

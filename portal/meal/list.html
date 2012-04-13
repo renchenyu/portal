@@ -5,26 +5,33 @@
 {% block mainContent %}
 {% load url from future %}
 
-<a href="{% url 'meal.views.menu' %}">我要订餐</a>
-
 <h1>订餐汇总</h1>
 {% for data in orders_group_by_restaurant %}
-<h2>{{ data.restaurant.name }}</h2>
-<h3>电话:{{ data.restaurant.phonenumber_set.all|join:"," }}</h3>
+<h2 style="color: #0099cc">{{ data.restaurant.name }}</h2>
+<h3 style="color: #cc0000">电话:{{ data.restaurant.phonenumber_set.all|join:"," }}</h3>
 {% if data.restaurant.kind == 'C' %}
 <table>
+	<thead>
+		<th>订餐人</th>
+		<th>具体信息</th>
+	</thead>
 	{% for user, meals in data.orders.iteritems %}
 	<tr>
 		<td>{{ user.get_full_name }}</td>
 		<td>
 			<table>
-			{% for meal, num in meals.iteritems %}
-			<tr>
-				<td>{{ meal.name }}</td>
-				<td>{{ num }}</td>
-				<td>{{ meal.price_today }}</td>			
-			</tr>
-			{% endfor %}
+				<thead>
+					<th>名称</th>
+					<th>数量</th>
+					<th>价格</th>
+				</thead>
+				{% for meal, num in meals.iteritems %}
+				<tr>
+					<td>{{ meal.name }}</td>
+					<td>{{ num }}</td>
+					<td>{{ meal.price_today }}</td>			
+				</tr>
+				{% endfor %}
 			</table>
 		</td>
 	</tr>
@@ -32,6 +39,11 @@
 </table>
 {% else %}
 <table>
+	<thead>
+		<th>名称</th>
+		<th>数量</th>
+		<th>价格</th>
+	</thead>
 	{% for meal, num in data.orders.iteritems %}
 	<tr>
 		<td>{{ meal.name }}</td>
@@ -43,22 +55,22 @@
 {% endif %}
 
 <div>总数：{{ data.total }}</div>
-<div>总价：{{ data.total_price }}</div>
+<div style="color: #cc0000">总价：{{ data.total_price }}</div>
 
 {% endfor %}
 
 {% if perms.meal.change_lock %}
-<div>
+<div style="text-align: center">
 	<form method="POST" action="{% url 'meal.views.toggle_lock' %}">
 		{% csrf_token %}
-		<input type="submit" value="{% if locked %}解锁{% else %}锁定{% endif %}" />
+		<input class="form_button" type="submit" value="{% if locked %}解锁{% else %}锁定{% endif %}" />
 	</form>
 </div>
 
-<div>
+<div style="text-align: center">
 	<form method="POST" action="{% url 'meal.views.mark_all_as_finished' %}">
 		{% csrf_token %}
-		<input type="submit" value="付款" />
+		<input class="form_button" type="submit" value="付款" />
 	</form>
 </div>
 {% endif %}
@@ -67,23 +79,23 @@
 {% regroup orders by restaurant as orders_regrouped_by_restaurant %}
 {% for group in orders_regrouped_by_restaurant %}
 <div>
-	<div>{{ group.grouper.name }}</div>
+	<h2>{{ group.grouper.name }}</h2>
 	<table>
-		<tr>
-			<td>菜名</td>
-			<td>数量</td>
-			<td>下单者</td>
-			<td>付款人</td>
-			<td>状态</td>
-			<td>操作</td>
-		</tr>
+		<thead>
+			<th>菜名</th>
+			<th>数量</th>
+			<th>下单者</th>
+			<th>付款人</th>
+			<th>状态</th>
+			<th>操作</th>
+		</thead>
 		{% for o in group.list %}
 		<tr>
 			<td>{{ o.meal.name }}</td>
 			<td>{{ o.num }}</td>
 			<td>{{ o.order_user.get_full_name }}</td>
 			<td>{{ o.for_user.get_full_name }}</td>
-			<td>{% if o.state == 0 %}未付款{% elif o.state == 1 %}已付款{% else %}未知{% endif %}</td>
+			<td style="color: {% if o.state == 0 %}#cc0000{% elif o.state == 1 %}#669900{% else %}#000000{% endif %}">{% if o.state == 0 %}未付款{% elif o.state == 1 %}已付款{% else %}未知{% endif %}</td>
 			<td>
 				
 				{% comment %} how "a and (c or b)" {% endcomment %}
@@ -109,5 +121,7 @@
 	<li>{{ u.get_full_name }}</li>
 	{% endfor %}
 </ul>
+
+
 
 {% endblock %}
