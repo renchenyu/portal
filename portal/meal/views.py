@@ -54,6 +54,7 @@ def order(request):
             if payer_id != payer.id:
                 payer = User.objects.get(pk=payer_id)
                 
+            #TODO: is there good solution for dynamic forms?
             orders = []
             for id, meal in meals.iteritems():
                 num = request.POST['num_' + str(id)]
@@ -61,8 +62,9 @@ def order(request):
                     num = int(num)
                 except ValueError:
                     num = 1
-                print meal
-                print meal.restaurant
+                if not 0 < num < 1000:
+                    num = 1
+                    
                 orders.append(Order(
                     order_user=payer,
                     for_user=request.user,
