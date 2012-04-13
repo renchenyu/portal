@@ -184,7 +184,7 @@ def _regroup_and_sum_orders(orders):
                         order.meal: order.num                          
                     }
             else:
-                if order.meal in orders:
+                if order.meal in current_group_orders:
                     current_group_orders[order.meal] += order.num
                 else:
                     current_group_orders[order.meal] = order.num
