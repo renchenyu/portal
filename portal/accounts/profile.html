@@ -20,6 +20,7 @@
 </table>
 
 <a href="{% url 'django.contrib.auth.views.password_change' %}">修改密码</a>
+<a href="{% url 'meal.views.menu' %}">订餐系统</a>
 
 {% if perms.payment.deposite_account %}
 <a href="{% url 'payment.views.account_list' %}">充值</a>

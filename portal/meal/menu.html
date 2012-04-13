@@ -1,0 +1,93 @@
+{% extends 'login_required.html' %}
+
+{% block title %}订餐系统{% endblock %}
+
+{% block mainContent %}
+{% load url from future %}
+
+<a href="{% url 'meal.views.summary' %}">订单汇总</a>
+
+{% if restaurants %}
+<div>
+	<select name="restaurant" id="id_restaurant">
+		{% for r in restaurants %}
+		<option value="{{ r.id }}" {% if restaurant.id == r.id %}selected{% endif %}>{{ r.name }}</option>
+		{% endfor %}
+	</select>
+</div>
+<div>
+	支付人:
+	<select id="id_payer">
+		{% for u in all_users %}
+		<option value="{{ u.id }}" {% if u.id == user.id %}selected{% endif %}>{{ u.get_full_name }}</option>
+		{% endfor %}
+	</select>
+</div>
+
+<script>
+	document.getElementById('id_restaurant').onchange = function() {
+		window.location.href = "{% url 'meal.views.menu' %}" + this.options[this.selectedIndex].value; 
+	}
+	
+	document.getElementById('id_payer').onchange = function() {
+		var hidden_inputs = document.getElementsByClassName('payer_class');
+		for(var i = 0; i < hidden_inputs.length; ++i) {
+			hidden_inputs[i].value = this.options[this.selectedIndex].value;
+		}
+	}
+</script>
+
+{% if restaurant.kind == 'S' %}
+<table>
+	<thead>
+		<th>名称</th>
+		<th>价格</th>
+		<th>数量</th>
+		<th></th>
+	</thead>
+	{% for meal in meals %}
+	<form action="{% url 'meal.views.order' %}" method="POST">
+	<tr>
+		<td>{{ meal.name }}</td>
+		<td>{{ meal.price_today }}</td>
+		<td><input type="text" name="num_{{ meal.id }}" value="1" /></td>
+		<td>
+			<input type="submit" value="订购" />
+			<input type="hidden" name="meal_ids" value="{{ meal.id }}"/>
+			<input type="hidden" class="payer_class" name="payer_id" value="{{ user.id }}"/>
+			{% csrf_token %}
+		</td>
+	</tr>
+	</form>
+	{% endfor %}
+</table>
+{% else %}
+<form method="POST" action="{% url 'meal.views.order' %}">
+	<table>
+		<thead>
+			<th>名称</th>
+			<th>价格</th>
+			<th>数量</th>
+			<th></th>
+		</thead>
+		{% for meal in meals %}
+		<tr>
+			<td>{{ meal.name }}</td>
+			<td>{{ meal.price_today }}</td>
+			<td><input type="text" name="num_{{ meal.id }}" value="1" /></td>
+			<td><input type="checkbox" name="meal_ids" value="{{ meal.id }}" /></td>
+		</tr>
+		{% endfor %}
+	</table>
+	
+	<input type="hidden" class="payer_class" name="payer_id" value="{{ user.id }}"/>
+	{% csrf_token %}
+	<input type="submit" value="订购" />
+</form>
+{% endif %}
+
+{% else %}
+<h1>让管理员添加点外卖吧...</h1>
+{% endif %}
+
+{% endblock %}

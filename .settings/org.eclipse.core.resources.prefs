@@ -1,4 +1,6 @@
-#Thu Apr 12 10:45:06 CST 2012
+#Fri Apr 13 10:54:21 CST 2012
 eclipse.preferences.version=1
+encoding//portal/meal/models.py=utf8
+encoding//portal/meal/views.py=utf8
 encoding//portal/payment/forms.py=utf8
 encoding//portal/payment/views.py=utf8

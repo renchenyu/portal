@@ -1,0 +1,113 @@
+{% extends 'login_required.html' %}
+
+{% block title %}订单汇总{% endblock %}
+
+{% block mainContent %}
+{% load url from future %}
+
+<a href="{% url 'meal.views.menu' %}">我要订餐</a>
+
+<h1>订餐汇总</h1>
+{% for data in orders_group_by_restaurant %}
+<h2>{{ data.restaurant.name }}</h2>
+<h3>电话:{{ data.restaurant.phonenumber_set.all|join:"," }}</h3>
+{% if data.restaurant.kind == 'C' %}
+<table>
+	{% for user, meals in data.orders.iteritems %}
+	<tr>
+		<td>{{ user.get_full_name }}</td>
+		<td>
+			<table>
+			{% for meal, num in meals.iteritems %}
+			<tr>
+				<td>{{ meal.name }}</td>
+				<td>{{ num }}</td>
+				<td>{{ meal.price_today }}</td>			
+			</tr>
+			{% endfor %}
+			</table>
+		</td>
+	</tr>
+	{% endfor %}
+</table>
+{% else %}
+<table>
+	{% for meal, num in data.orders.iteritems %}
+	<tr>
+		<td>{{ meal.name }}</td>
+		<td>{{ num }}</td>
+		<td>{{ meal.price_today }}</td>
+	</tr>
+	{% endfor %}
+</table>
+{% endif %}
+
+<div>总数：{{ data.total }}</div>
+<div>总价：{{ data.total_price }}</div>
+
+{% endfor %}
+
+{% if perms.meal.change_lock %}
+<div>
+	<form method="POST" action="{% url 'meal.views.toggle_lock' %}">
+		{% csrf_token %}
+		<input type="submit" value="{% if locked %}解锁{% else %}锁定{% endif %}" />
+	</form>
+</div>
+
+<div>
+	<form method="POST" action="{% url 'meal.views.mark_all_as_finished' %}">
+		{% csrf_token %}
+		<input type="submit" value="付款" />
+	</form>
+</div>
+{% endif %}
+
+<h1>订餐明细</h1>
+{% regroup orders by restaurant as orders_regrouped_by_restaurant %}
+{% for group in orders_regrouped_by_restaurant %}
+<div>
+	<div>{{ group.grouper.name }}</div>
+	<table>
+		<tr>
+			<td>菜名</td>
+			<td>数量</td>
+			<td>下单者</td>
+			<td>付款人</td>
+			<td>状态</td>
+			<td>操作</td>
+		</tr>
+		{% for o in group.list %}
+		<tr>
+			<td>{{ o.meal.name }}</td>
+			<td>{{ o.num }}</td>
+			<td>{{ o.order_user.get_full_name }}</td>
+			<td>{{ o.for_user.get_full_name }}</td>
+			<td>{% if o.state == 0 %}未付款{% elif o.state == 1 %}已付款{% else %}未知{% endif %}</td>
+			<td>
+				
+				{% comment %} how "a and (c or b)" {% endcomment %}
+				
+				{% if user == o.order_user or user == o.for_user %}
+				{% if o.state == 0 %}
+				<form method="POST" action="{% url 'meal.views.cancel_order' order_id=o.id %}">
+					{% csrf_token %}
+					<input type="submit" value="删除" />
+				</form>
+				{% endif %}
+				{% endif %}
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+{% endfor %}
+
+<h1>未订餐用户列表</h1>
+<ul>
+	{% for u in unordered_users %}
+	<li>{{ u.get_full_name }}</li>
+	{% endfor %}
+</ul>
+
+{% endblock %}
