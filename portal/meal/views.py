@@ -10,6 +10,14 @@ from django.db import transaction
 
 from meal.models import Order, Restaurant, Meal, Lock
 
+def sys_is_unlocked(meth):
+    def new(*args, **kwargs):
+        if Lock.is_locked():
+            return HttpResponseForbidden('订餐系统已经锁定')
+        return meth(*args, **kwargs)
+    return new
+
+
 @login_required
 def menu(request, restaurant_id=0):
     params = {
@@ -35,12 +43,9 @@ def menu(request, restaurant_id=0):
     return render_to_response('meal/menu.html', params, context_instance=RequestContext(request))
 
 @login_required
+@sys_is_unlocked
 def order(request):
     if request.method == 'POST':
-        
-        # disable this function if meal system has been locked
-        if Lock.is_locked():
-            return HttpResponseForbidden('订餐系统已经锁定')
         
         meal_ids = request.POST.getlist('meal_ids')
         meals = Meal.objects.in_bulk(meal_ids)
@@ -131,13 +136,8 @@ def mark_all_as_finished(request):
     return HttpResponseRedirect(reverse('meal.views.summary'))
 
 @login_required
+@sys_is_unlocked
 def cancel_order(request, order_id):
-    
-    # disable this function if meal system has been locked
-    # TODO: can I implement this with decorator?
-    if Lock.is_locked():
-        return HttpResponseForbidden('订餐系统已经锁定')
-    
     try:
         order = Order.objects.get(pk=order_id)
         if order.order_user == request.user or order.for_user == request.user:
