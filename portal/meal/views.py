@@ -1,4 +1,7 @@
 # -*- coding:utf8 -*-
+import itertools
+from collections import defaultdict
+
 from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponseNotFound, HttpResponseRedirect, HttpResponseNotAllowed, \
     HttpResponseForbidden
@@ -97,7 +100,7 @@ def summary(request, year=None, month=None, day=None):
     else:
         orders = Order.by_date(year, month, day)
     
-    orders = orders.select_related('meal', 'restaurant', 'order_for').order_by('restaurant')
+    orders = orders.select_related('meal', 'restaurant', 'order_for').order_by('restaurant', 'for_user')
   
     # data for unorderd users      
     ordered_user_set = set([order.for_user for order in orders])
@@ -105,9 +108,11 @@ def summary(request, year=None, month=None, day=None):
     
     # is meal sys locked?
     locked = Lock.is_locked()
+    
+    orders_group_by_restaurant = _regroup_and_sum_orders(orders)
         
     return render_to_response('meal/list.html', {'orders': orders,
-        'orders_group_by_restaurant': _regroup_and_sum_orders(orders),
+        'orders_group_by_restaurant': orders_group_by_restaurant,
         'unordered_users': all_user_set - ordered_user_set, 'locked': locked}, 
         context_instance=RequestContext(request))
     
@@ -146,53 +151,37 @@ def cancel_order(request, order_id):
         pass
         
     return HttpResponseRedirect(reverse('meal.views.summary'))
-    
 
 def _regroup_and_sum_orders(orders):
-    #TODO: refactory these ugly codes
-    orders_group_by_restaurant = []
-    last_restaurant_id = None
-    for order in orders:
-        if last_restaurant_id is None or order.restaurant.id != last_restaurant_id:
-            # meet a new restaurant
-            last_restaurant_id = order.restaurant.id
+    result = []
+    for restaurant, orders_of_restaurant in itertools.groupby(orders, lambda order: order.restaurant):
+        summary = {'restaurant': restaurant, 'total': 0, 'total_price': 0}
+        if restaurant.kind == 'C':
+            summary['orders'] = {}
+            for for_user, orders_of_user in itertools.groupby(orders_of_restaurant, lambda order: order.for_user):
+                summary['orders'][for_user], total, total_price = _sum_orders(orders_of_user)
+                summary['total'] += total
+                summary['total_price'] += total_price
 
-            current_group = {'restaurant': order.restaurant, 'total': order.num, 'total_price': order.num * order.meal.price_today()}
-            if order.restaurant.kind == 'C':
-                current_group['orders'] = {
-                    order.for_user: {
-                        order.meal: order.num,                 
-                    }
-                }
-            else:
-                current_group['orders'] = {
-                    order.meal: order.num,               
-                }
-
-            orders_group_by_restaurant.append(current_group)
         else:
-            current_group = orders_group_by_restaurant[-1]
-            current_group_orders = current_group['orders']
-            if order.restaurant.kind == "C":
-                if order.for_user in current_group_orders:
-                    if order.meal in current_group_orders[order.for_user]:
-                        current_group_orders[order.for_user][order.meal] += order.num
-                    else:
-                        current_group_orders[order.for_user][order.meal] = order.num
-                else:
-                    current_group_orders[order.for_user] = {
-                        order.meal: order.num                          
-                    }
-            else:
-                if order.meal in current_group_orders:
-                    current_group_orders[order.meal] += order.num
-                else:
-                    current_group_orders[order.meal] = order.num
-                    
-            current_group['total'] += order.num
-            current_group['total_price'] += order.num * order.meal.price_today()
-            
-    return orders_group_by_restaurant
+            summary['orders'], total, total_price = _sum_orders(orders_of_restaurant)
+            summary['total'] += total
+            summary['total_price'] += total_price
+
+        result.append(summary)
         
+    return result
+
+def _sum_orders(orders):
+    result = defaultdict(int)
+    total = total_price = 0
+    for order in orders:
+        result[order.meal] += order.num
+        total = order.num
+        total_price = order.meal.price_today() * order.num
+        
+    # django template doesn't support defaultdict well
+    return dict(result), total, total_price 
+
             
     
