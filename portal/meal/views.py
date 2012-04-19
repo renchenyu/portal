@@ -3,13 +3,13 @@ import itertools
 from collections import defaultdict
 
 from django.contrib.auth.decorators import login_required, permission_required
-from django.http import HttpResponseNotFound, HttpResponseRedirect, HttpResponseNotAllowed, \
-    HttpResponseForbidden
+from django.http import HttpResponseNotFound, HttpResponseRedirect, HttpResponseForbidden
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.views.decorators.http import require_http_methods
 
 from meal.models import Order, Restaurant, Meal, Lock
 
@@ -21,6 +21,7 @@ def sys_is_unlocked(meth):
     return new
 
 
+@require_http_methods(['GET'])
 @login_required
 def menu(request, restaurant_id=0):
     params = {
@@ -45,53 +46,52 @@ def menu(request, restaurant_id=0):
 
     return render_to_response('meal/menu.html', params, context_instance=RequestContext(request))
 
+@require_http_methods(['POST'])
 @login_required
 @sys_is_unlocked
 def order(request):
-    if request.method == 'POST':
+    meal_ids = request.POST.getlist('meal_ids')
+    meals = Meal.objects.in_bulk(meal_ids)
+    
+    if len(meals) == 0:
+        return HttpResponseRedirect(reverse('meal.views.menu'))
         
-        meal_ids = request.POST.getlist('meal_ids')
-        meals = Meal.objects.in_bulk(meal_ids)
-        
-        if len(meals) == 0:
-            return HttpResponseRedirect(reverse('meal.views.menu'))
+    try:
+        payer_id = request.POST['payer_id']
+        payer = request.user
+        if payer_id != payer.id:
+            payer = User.objects.get(pk=payer_id)
             
-        try:
-            payer_id = request.POST['payer_id']
-            payer = request.user
-            if payer_id != payer.id:
-                payer = User.objects.get(pk=payer_id)
+        #TODO: is there good solution for dynamic forms?
+        orders = []
+        for meal in meals.itervalues():
+            num = request.POST['num_' + str(id)]
+            try:
+                num = int(num)
+            except ValueError:
+                num = 1
+            if not 0 < num < 1000:
+                num = 1
                 
-            #TODO: is there good solution for dynamic forms?
-            orders = []
-            for id, meal in meals.iteritems():
-                num = request.POST['num_' + str(id)]
-                try:
-                    num = int(num)
-                except ValueError:
-                    num = 1
-                if not 0 < num < 1000:
-                    num = 1
-                    
-                orders.append(Order(
-                    order_user=payer,
-                    for_user=request.user,
-                    meal=meal,
-                    restaurant=meal.restaurant,
-                    num=num,
-                ))
-                
-            Order.objects.bulk_create(orders)
+            orders.append(Order(
+                order_user=payer,
+                for_user=request.user,
+                meal=meal,
+                restaurant=meal.restaurant,
+                num=num,
+            ))
             
-            return HttpResponseRedirect(reverse('meal.views.summary'))
-                
-        except KeyError:
-            return HttpResponseRedirect(reverse('meal.views.menu'))
-        except User.DoesNotExist:
-            return HttpResponseRedirect(reverse('meal.views.menu'))
-    else:
-        return HttpResponseNotAllowed(['POST'])
+        Order.objects.bulk_create(orders)
         
+        return HttpResponseRedirect(reverse('meal.views.summary'))
+            
+    except KeyError:
+        return HttpResponseRedirect(reverse('meal.views.menu'))
+    except User.DoesNotExist:
+        return HttpResponseRedirect(reverse('meal.views.menu'))
+
+
+@require_http_methods(['GET'])        
 @login_required
 def summary(request, year=None, month=None, day=None):
     orders = None
@@ -115,13 +115,15 @@ def summary(request, year=None, month=None, day=None):
         'orders_group_by_restaurant': orders_group_by_restaurant,
         'unordered_users': all_user_set - ordered_user_set, 'locked': locked}, 
         context_instance=RequestContext(request))
-    
+ 
+@require_http_methods(['POST'])   
 @login_required
 @permission_required('meal.change_lock', raise_exception=True)
 def toggle_lock(request):
     Lock.toggle()
     return HttpResponseRedirect(reverse('meal.views.summary'))
 
+@require_http_methods(['POST'])
 @login_required
 @permission_required('meal.change_lock', raise_exception=True)
 @transaction.commit_on_success
@@ -140,6 +142,7 @@ def mark_all_as_finished(request):
         
     return HttpResponseRedirect(reverse('meal.views.summary'))
 
+@require_http_methods(['POST'])
 @login_required
 @sys_is_unlocked
 def cancel_order(request, order_id):
