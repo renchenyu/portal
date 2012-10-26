@@ -65,7 +65,7 @@ def order(request):
         #TODO: is there good solution for dynamic forms?
         orders = []
         for meal in meals.itervalues():
-            num = request.POST['num_' + str(id)]
+            num = request.POST['num_' + str(meal.id)]
             try:
                 num = int(num)
             except ValueError:
